@@ -10,6 +10,9 @@
   "dependencies": {
     "core-js": "^3.3.2",
     "element-ui": "^2.4.5",
+    "localforage": "^1.7.3",
+    "stylus": "^0.54.7",
+    "stylus-loader": "^3.0.2",
     "vue": "^2.6.10"
   },
   "devDependencies": {
@@ -32,9 +35,11 @@
       "plugin:vue/essential",
       "eslint:recommended"
     ],
-    "rules": {},
     "parserOptions": {
       "parser": "babel-eslint"
+    },
+    "rules": {
+      "no-console": "off"
     }
   },
   "postcss": {

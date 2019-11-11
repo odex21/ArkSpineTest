@@ -29,12 +29,11 @@ import { Button } from 'element-ui';
 import Spine from '../../utils/Spine/initSpine';
 
 import Vue from 'vue';
-import { path } from '../../utils/listVer';
 Vue.use(Button);
 
 export default {
   mounted() {
-    this.init();
+    setTimeout(this.init, 500)
   },
   props: {
     canvasWidth: {
@@ -44,6 +43,10 @@ export default {
     id: {
       required: true,
       type: String
+    },
+    replaceBuild: {
+      type: Boolean,
+      default: false
     }
   },
   data() {
@@ -57,7 +60,7 @@ export default {
       height: (width * 1.2) + 'px',
       width: this.canvasWidth + 'px',
       curSkeleton: null,
-      spinePath: path + 'char/spine/',
+      spinePath: '/',
       mode: ['build', 'fight_f', 'fight_b']
     };
   },
@@ -77,15 +80,16 @@ export default {
       else if (this.curAnimate < 0)
         this.curAnimate = this.animates.length !== 0 ? this.animates.length - 1 : 0;
 
-      const { state, skeleton } = this.spine.skeletons[this.id];
+      const id = this.mode[0] === 'build' ? 'build_' + this.id : this.id
+      const { state, skeleton } = this.spine.skeletons[id];
       const animate = this.spine.animates[this.curAnimate];
       const loop = (/Start|Begin|End/.test(animate) ? false : true);
       state.setAnimation(0, animate, loop);
       skeleton.setToSetupPose();
     },
     async init() {
-      this.spine = new Spine(this.$refs.container);
-      const id = this.id,
+      this.spine = new Spine(this.$refs.container, this.replaceBuild);
+      const id = this.mode[0] === 'build' ? 'build_' + this.id : this.id,
         pathd = this.spinePath + this.mode[0] + '/';
 
       this.skeleton = await this.spine.init({ id, path: pathd });
@@ -116,31 +120,6 @@ export default {
     }
   }
 
-  /*&:before, &:after {
-      content: ''
-      box-sizing: border-box
-      position: absolute
-      z-index: -1
-    }
-  
-    &:before {
-      border-color: hsl(0, 0%, 19%)
-      border-top: var(--border-width) solid
-      border-left: var(--border-width) solid
-      top: 14%
-      left: 14%
-      width: var(--border-size)
-      height: var(--border-size)
-    }
-  
-    &:after {
-      border-bottom: var(--border-width) solid #c02a34
-      border-right: var(--border-width) solid #c02a34
-      bottom: 24%
-      right: 15%
-      width: var(--border-size)
-      height: var(--border-size)
-    }*/
   .control-button-wrapper {
     position: absolute
     bottom: 0

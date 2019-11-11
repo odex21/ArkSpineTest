@@ -8688,6 +8688,5 @@ var spineWebGl;
 		webgl.WebGLBlendModeConverter = WebGLBlendModeConverter;
 	})(webgl = spine.webgl || (spine.webgl = {}));
 })(spineWebGl || (spineWebGl = {}));
-//# sourceMappingURL=spine-webgl.js.map
 
 export default spineWebGl;

@@ -20,7 +20,8 @@ class Spine {
   animates
   urls
 
-  constructor(cantainer) {
+  constructor(cantainer, replaceBuild = true) {
+    this.replaceBuild = replaceBuild
     this.canvas = cantainer;
     const config = { alpha: true };
     this.gl = this.canvas.getContext('webgl', config) || this.canvas.getContext('experimental-webgl', config);
@@ -47,7 +48,8 @@ class Spine {
     this.assetManager.loadText(path + id + '.atlas');
     this.assetManager.loadTexture(path + id + '.png');
     const data = await fetch(path + id + '.skel')
-      .then(res => res.arrayBuffer());
+      .then(res => res.arrayBuffer())
+      .catch(err => console.error(err))
     // requestAnimationFrame(() => this.load());
     return this.load(data);
   }
@@ -71,7 +73,12 @@ class Spine {
     const { path, id } = this;
     const _atlas = path + id + '.atlas';
     const atlas = new SpineWebGl.TextureAtlas(this.assetManager.get(_atlas)
-      , el => this.assetManager.get(path + encodeURIComponent(el).replace('build_', '')));
+      , el => {
+        let res = path + encodeURIComponent(el)
+        if (this.replaceBuild)
+          res = res.replace('build_', '')
+        return this.assetManager.get(res)
+      });
     const atlasLoader = new SpineWebGl.AtlasAttachmentLoader(atlas);
     const skeletonJson = new SpineWebGl.SkeletonJson(atlasLoader);
 
