@@ -1,29 +1,46 @@
 <template>
   <div id="app">
-    <img src="./assets/logo.png" />
+    <div class="spine-panel-container">
+      <spine-panel ref="spine" :id="enCodeId" :replaceBuild="replaceBuild" debug></spine-panel>
+    </div>
+    <div class="id-arrary">
+      <div v-for="aId in idArrShow" :key="aId">
+        <el-button closable @click="id = aId">{{aId}}</el-button>
+        <el-button @click="deleteId(aId)" type="mini" icon="el-icon-delete"></el-button>
+      </div>
+    </div>
+    <div style="padding-top: 50px">更多信息去看readme</div>
     <div class="id-input-wrapper">
       <span>输入干员ID|文件名</span>
       <el-input style="width: 200px; padding-left: 20px" v-model="id"></el-input>
     </div>
-    <div class="spine-panel-container">
-      <spine-panel ref="spine" :id="id" :replaceBuild="false"></spine-panel>
-    </div>
-    <div class="id-arrary">
-      <div v-for="aId in idArr" :key="aId">
-        <el-button @click="id = aId">{{aId}}</el-button>
-      </div>
+    <div class="id-input-wrapper">
+      <span>获取文件时是否加"build_"</span>
+      <el-switch style="width: 200px; padding-left: 20px" v-model="replaceBuild"></el-switch>
     </div>
   </div>
 </template>
 
 <script>
 import Vue from 'vue'
-import { Input } from 'element-ui'
+import { Input, Tag, Switch } from 'element-ui'
 Vue.use(Input)
+Vue.use(Tag)
+Vue.use(Switch)
 
 import SpinePanel from './components/SpinePanel'
-
 import localforage from 'localforage'
+
+import { debounce } from './utils'
+
+const test = (self, v) =>
+  debounce(v => {
+    console.log("???????????????")
+    v = self.id = v.replace('build_', '')
+    self.store.setItem('id', v)
+    self.idArr.add(v)
+    self.setItem('idArr', JSON.stringify([...this.idArr]))
+  }, 500, v)
 
 export default {
   name: 'app',
@@ -34,29 +51,63 @@ export default {
     const set = new Set()
     set.add('char_002_amiya')
     console.log(set)
+    const defaultId = 'char_002_amiya'
     return {
-      id: 'char_002_amiya',
+      id: defaultId,
       store: null,
-      idArr: set
+      idArr: set,
+      idArrShow: [...set],
+      replaceBuild: true,
+      enCodeId: encodeURIComponent(defaultId)
     }
   },
   async mounted() {
     const store = this.store = await localforage.createInstance('id')
     store.getItem('id')
       .then(id => {
-        this.id = id
-        this.idArr.add(id)
+        if (id) {
+          this.id = id
+          this.idArr.add(id)
+          this.$refs.spine.init()
+        }
       })
 
     store.getItem('idArr')
-      .then(arr => arr && (this.idArr = arr))
+      .then(arr => {
+        if (arr) {
+          const temp = JSON.parse(arr)
+          temp.forEach(el => this.idArr.add(el))
+          this.idArrShow = [...this.idArr]
+        }
+      })
+
   },
   watch: {
     id(v) {
-      v = this.id = this.id.replace('build_', '')
-      this.store.setItem('id', v)
-      this.$refs.spine.init()
-      this.idArr.add(v)
+      this.watchId(v, this)
+    },
+    replaceBuild() {
+      this.$refs.init()
+    }
+  },
+  methods: {
+    watchId: debounce((v, self) => {
+      if (!v) return
+      v = self.id = v.replace('build_', '')
+      self.store.setItem('id', v)
+      self.idArr.add(v)
+      self.enCodeId = encodeURIComponent(v)
+      self.idArrShow = [...self.idArr]
+      self.store.setItem('idArr', JSON.stringify([...self.idArr]))
+    }, 1000),
+
+    deleteId(id) {
+      this.idArr.delete(id)
+      this.idArrShow = [...this.idArr]
+      this.store.setItem('idArr', JSON.stringify([...this.idArr]))
+    },
+    test(v) {
+      return test(this, v)
     }
   }
 }

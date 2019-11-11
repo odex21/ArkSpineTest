@@ -1,6 +1,9 @@
 <template>
   <div class="spine-panel" :style="'--border-width:' + borderWidth + 'px'">
-    <div class="spine-id">{{mode[0]}}</div>
+    <div class="spine-id">
+      <p v-if="debug">当前状态： {{mode[0]}} {{state ? '正常加载' : '加载失败'}}</p>
+    </div>
+
     <div class="control-button-wrapper">
       <div>
         <el-button
@@ -15,6 +18,7 @@
         <el-button type="primary" size="mini" @click="changeAnimate(false)" class="el-icon-back"></el-button>
         <span
           style="display: inline-block;text-align: center; font-size: 13px"
+          v-if="animates"
         >{{animates[curAnimate]}}</span>
         <el-button type="primary" size="mini" @click="changeAnimate(true)" class="el-icon-right"></el-button>
       </div>
@@ -29,12 +33,10 @@ import { Button } from 'element-ui';
 import Spine from '../../utils/Spine/initSpine';
 
 import Vue from 'vue';
+import { debounce } from '../../utils';
 Vue.use(Button);
 
 export default {
-  mounted() {
-    setTimeout(this.init, 500)
-  },
   props: {
     canvasWidth: {
       default: 300,
@@ -47,11 +49,14 @@ export default {
     replaceBuild: {
       type: Boolean,
       default: false
+    },
+    debug: {
+      type: Boolean,
+      default: false
     }
   },
   data() {
     const width = (this.canvasWidth);
-
     return {
       animates: [],
       curAnimate: 0,
@@ -61,8 +66,14 @@ export default {
       width: this.canvasWidth + 'px',
       curSkeleton: null,
       spinePath: '/',
-      mode: ['build', 'fight_f', 'fight_b']
+      mode: ['build', 'fight_f', 'fight_b'],
+      state: false
     };
+  },
+  watch: {
+    id() {
+      this.watchId(this)
+    }
   },
   computed: {
     borderWidth() {
@@ -70,11 +81,15 @@ export default {
     }
   },
   methods: {
+    watchId: debounce(self => {
+      self.init()
+    }, 1000),
     swtichId() {
       this.mode.push(this.mode.shift());
       this.init();
     },
     changeAnimate(t) {
+      if (!this.animates) return
       this.curAnimate = t ? this.curAnimate + 1 : this.curAnimate - 1;
       if (this.curAnimate >= this.animates.length) this.curAnimate = 0;
       else if (this.curAnimate < 0)
@@ -89,11 +104,21 @@ export default {
     },
     async init() {
       this.spine = new Spine(this.$refs.container, this.replaceBuild);
-      const id = this.mode[0] === 'build' ? 'build_' + this.id : this.id,
+      const id = this.mode[0] === 'build' && this.replaceBuild ? 'build_' + this.id : this.id,
         pathd = this.spinePath + this.mode[0] + '/';
+      console.log(id)
 
-      this.skeleton = await this.spine.init({ id, path: pathd });
-      this.animates = this.spine.animates;
+      this.spine.init({ id, path: pathd })
+        .then(skel => {
+          this.skeletons = skel
+          this.animates = this.spine.animates;
+          this.state = true
+        })
+        .catch(error => {
+          this.state = false
+          console.error(error)
+          return
+        })
     }
   }
 
