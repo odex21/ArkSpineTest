@@ -73,6 +73,9 @@ export default {
   watch: {
     id() {
       this.watchId(this)
+    },
+    replaceBuild(v) {
+      this.spine.replaceBuild = v
     }
   },
   computed: {
@@ -95,10 +98,16 @@ export default {
       else if (this.curAnimate < 0)
         this.curAnimate = this.animates.length !== 0 ? this.animates.length - 1 : 0;
 
-      const id = this.mode[0] === 'build' ? 'build_' + this.id : this.id
+      const id = this.mode[0] === 'build' && !this.replaceBuild ? 'build_' + this.id : this.id
+
+      if (!this.spine.skeletons[id]) {
+        console.log(`no id ${id}`)
+        return
+      }
       const { state, skeleton } = this.spine.skeletons[id];
       const animate = this.spine.animates[this.curAnimate];
       const loop = (/Start|Begin|End/.test(animate) ? false : true);
+
       state.setAnimation(0, animate, loop);
       skeleton.setToSetupPose();
     },

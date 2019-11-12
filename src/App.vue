@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <div class="spine-panel-container">
-      <spine-panel ref="spine" :id="enCodeId" :replaceBuild="replaceBuild" debug></spine-panel>
+      <spine-panel v-if="showSpine" ref="spine" :id="enCodeId" :replaceBuild="replaceBuild" debug></spine-panel>
     </div>
     <div class="id-arrary">
       <div v-for="aId in idArrShow" :key="aId">
@@ -58,7 +58,8 @@ export default {
       idArr: set,
       idArrShow: [...set],
       replaceBuild: true,
-      enCodeId: encodeURIComponent(defaultId)
+      enCodeId: encodeURIComponent(defaultId),
+      showSpine: false
     }
   },
   async mounted() {
@@ -68,7 +69,10 @@ export default {
         if (id) {
           this.id = id
           this.idArr.add(id)
-          this.$refs.spine.init()
+          this.showSpine = true
+          this.$nextTick().then(() => {
+            // this.$refs.spine.init()
+          })
         }
       })
 
@@ -87,7 +91,7 @@ export default {
       this.watchId(v, this)
     },
     replaceBuild() {
-      this.$refs.init()
+      this.$refs.spine.init()
     }
   },
   methods: {

@@ -72,10 +72,11 @@ class Spine {
     // The function passed to TextureAtlas is used to resolve relative paths.
     const { path, id } = this;
     const _atlas = path + id + '.atlas';
+    const replace = this.replaceBuild
     const atlas = new SpineWebGl.TextureAtlas(this.assetManager.get(_atlas)
       , el => {
         let res = path + encodeURIComponent(el)
-        if (this.replaceBuild)
+        if (replace)
           res = res.replace('build_', '')
         return this.assetManager.get(res)
       });
