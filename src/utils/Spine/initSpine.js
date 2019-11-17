@@ -84,6 +84,14 @@ class Spine {
     const skeletonJson = new SpineWebGl.SkeletonJson(atlasLoader);
 
     const json = skel2Json(binary);
+    let container = document.querySelector('#json')
+    if (!container) {
+      container = document.createElement('p')
+      container.id = 'json'
+      //  p.width = '50vw'
+      document.body.appendChild(container)
+    }
+    container.innerHTML = JSON.stringify(json)
     this.animates = Object.keys(json.animations);
     this.skins = Object.keys(json.skins);
 

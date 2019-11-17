@@ -63,13 +63,13 @@ export default {
     }
   },
   async mounted() {
+    this.showSpine = true
     const store = this.store = await localforage.createInstance('id')
     store.getItem('id')
       .then(id => {
         if (id) {
           this.id = id
           this.idArr.add(id)
-          this.showSpine = true
           this.$nextTick().then(() => {
             // this.$refs.spine.init()
           })
